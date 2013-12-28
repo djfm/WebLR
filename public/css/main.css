@@ -1,0 +1,38 @@
+body
+{
+	margin-top: 15px;
+}
+
+div.columns span.label
+{
+	margin-top: 0.7em;
+}
+
+div.rhs-component
+{
+	display: inline-block;
+	margin-right: 10px;
+}
+
+div.rhs-component
+{
+	width: 120px;
+}
+
+span.postfix.success
+{
+	background-color: rgb(200,255,200);
+}
+
+.clickable
+{
+	cursor: pointer;
+}
+
+div.error
+{
+	background-color: orange;
+	padding: 10px;
+	border-radius: 10px;
+	border: 1px solid black;
+}
