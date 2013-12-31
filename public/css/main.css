@@ -36,3 +36,44 @@ div.error
 	border-radius: 10px;
 	border: 1px solid black;
 }
+
+table.expanding
+{
+	width: 100%;
+}
+
+table.expanding td
+{
+	text-align: center;
+}
+
+span.parser-action.shift
+{
+	color: green;
+}
+
+span.parser-action.reduce
+{
+	color: orange;
+}
+
+span.parser-action.goto
+{
+	color: blue;
+}
+
+span.parser-action.accept
+{
+	color: green;
+	font-weight: bold;
+}
+
+span.parser-action:not(:first-of-type)
+{
+	margin-left: 5px;
+}
+
+td.parser-actions.conflicted
+{
+	border: 1px solid red;
+}

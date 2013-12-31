@@ -28,7 +28,7 @@ function Item(rule, pos)
 			{
 				return {
 					name: rule.rhs[dotPos].name,
-					nonTerminal: rule.rhs[dotPos].name.match(/^[A-Z]/)
+					nonTerminal: Item.isNonTerminalSymbol(rule.rhs[dotPos])
 				};
 			}
 			else
@@ -59,6 +59,16 @@ function Item(rule, pos)
 			return new Item(rule, -1);
 		}
 	};
+
+	this.getRule = function()
+	{
+		return rule;
+	};
+};
+
+Item.isNonTerminalSymbol = function(rhsElement)
+{
+	return rhsElement.name.match(/^[A-Z]/);
 };
 
 function ItemSet()
@@ -216,16 +226,44 @@ function ItemSets()
 	{
 		return itemSets;
 	};
+
+	this.count = function()
+	{
+		return maxId + 1;
+	}
 }
 
-function Parser(rules)
+function ParserGenerator(rules)
 {
 	var itemSets = new ItemSets();
+	var shifts = {};
+	var gotos = {};
+	var reduces = {};
+	var accept = {};
 
-	// Needed for rules hashing
+	var terminals = {};
+	var nonTerminals = {};
+
+	var grammarOk = false;
+	var initialState = null;
+
 	for(var r in rules)
 	{
+		// Index rules
 		rules[r].id = r;
+		// Extract symbols for later
+		for(var i in rules[r].rhs)
+		{
+			var name = rules[r].rhs[i].name;
+			if (Item.isNonTerminalSymbol(rules[r].rhs[i]))
+			{
+				nonTerminals[name] = true;
+			}
+			else
+			{
+				terminals[name] = true;
+			}
+		}
 	}
 
 	this.computeParseTable = function()
@@ -249,7 +287,127 @@ function Parser(rules)
 		startItemSet.add(startItem);
 
 		this.closeItemSetAndFindNextOnes(startItemSet);
+
+		initialState = startItemSet.getId();
+
+		this.recordReduces();
+		var table = this.buildExtensiveTable();
+
+		var conflicts = this.listConflicts();
+		grammarOk = (conflicts.length === 0);
+		
+		return table;
 	};
+
+	this.isGrammarOk = function()
+	{
+		return grammarOk;
+	};
+
+	this.buildExtensiveTable = function()
+	{
+		var rows = {};
+		var headers = Object.keys(terminals).concat(Object.keys(nonTerminals));
+		headers.push('$');
+
+		for(var i=0; i<itemSets.count(); i++)
+		{
+			rows[i] = {};
+			for(var t in terminals)
+			{
+				rows[i][t] = {
+					shift: (shifts[i] && shifts[i][t]) || null,
+					reduces: reduces[i] || [],
+					to: null,
+					accept: false
+				};
+
+				if(rows[i][t].shift && rows[i][t].reduces.length > 0)
+				{
+					rows[i][t].conflicted = true;
+				}
+			}
+
+			for(var nt in nonTerminals)
+			{
+				rows[i][nt] = {
+					shift: null,
+					reduces: [],
+					to: (gotos[i] && gotos[i][nt]) || null,
+					accept: false
+				};
+			}
+
+			rows[i]['$'] = {
+				shifts: null,
+				reduces: [],
+				to: null,
+				accept: accept[i] || null
+			};
+		}
+		return {
+			headers: headers,
+			rows: rows
+		};
+	};
+
+	this.listConflicts = function()
+	{
+		var conflicts = [];
+		for(var s in shifts)
+		{
+			if(s in reduces)
+			{
+				conflicts.push({
+					type: 'shift/reduce',
+					state: s
+				});
+			}
+		}
+		for(var s in reduces)
+		{
+			if(reduces[s].length > 1)
+			{
+				conflicts.push({
+					type: 'reduce/reduce',
+					state: s
+				});
+			}
+		}
+
+		return conflicts;
+	};
+
+	this.recordReduces = function()
+	{
+		var sets = itemSets.getItemSets();
+		for(var i in sets)
+		{
+			var itemSet = sets[i];
+			var items = itemSet.getItems();
+			var state = itemSet.getId();
+
+			for(var j in items)
+			{
+				var item = items[j];
+				if(item.getDotPos() === -1)
+				{
+					if(item.getLhs().name !== 'Start')
+					{
+						if(!reduces[state])
+						{
+							reduces[state] = [];
+						}
+						reduces[state].push(item.getRule().id);
+					}
+					else
+					{
+						accept[state] = true;
+					}
+				}
+			}
+		}
+	}
 
 	this.closeItemSetAndFindNextOnes = function(itemSet, comingFrom)
 	{
@@ -263,14 +421,29 @@ function Parser(rules)
 
 		if(comingFrom)
 		{
-			console.log(
-				"Transition from",
-				comingFrom.itemSet.getId(),
-				"to",
-				itemSet.getId(),
-				"on", 
-				comingFrom.symbol
-			);
+			var fromId = comingFrom.itemSet.getId();
+			var toId = itemSet.getId();
+			var symbolName = comingFrom.symbol.name;
+			var symbolType = comingFrom.symbol.type;
+
+			// Record shift action
+			if(symbolType === 'terminal')
+			{
+				if(!shifts[fromId])
+				{
+					shifts[fromId] = {};
+				}
+				shifts[fromId][symbolName] = toId;
+			}
+			// Record goto
+			else
+			{
+				if(!gotos[fromId])
+				{
+					gotos[fromId] = {};
+				}
+				gotos[fromId][symbolName] = toId;
+			}
 		}
 
 		if(added.added)
@@ -293,6 +466,148 @@ function Parser(rules)
 					}
 				});
 			}
+		}
+	};
+
+	this.parse = function(str)
+	{
+		console.log("Parsing string: ", str);
+
+		var red = {};
+		for(var s in reduces)
+		{
+			red[s] = parseInt(reduces[s][0]);
+		}
+
+		var parser = new Parser({
+			rules: rules,
+			initialState: initialState,
+			shifts: shifts,
+			reduces: red,
+			gotos: gotos,
+			accept: accept
+		});
+
+		return parser.parse(str);
+	};
+};
+
+function Parser(description)
+{
+	console.log("Parser description:", description);
+
+	var states = [description.initialState];
+	var stack = [];
+
+	this.getState = function()
+	{
+		if(states.length === 0)
+		{
+			return false;
+		}
+		return states[states.length-1];
+	};
+
+	this.push = function(state, token)
+	{
+		states.push(state);
+		stack.push(token);
+		//console.log("Token '"+(token.name || token)+"': pushed state "+state);
+	};
+
+	this.parse = function(str)
+	{
+		for(var i in str)
+		{
+			var ate = this.eat({
+				type: 'terminal',
+				name: str[i],
+				value: str[i]
+			});
+			if(ate !== true)
+			{
+				return ate;
+			}
+		}
+
+		if(description.accept[this.getState()])
+		{
+			return stack[0];
+		}
+		else
+		{
+			return "Parsing ended in a non-accepting state.";
+		}
+	};
+
+	this.eat = function(token)
+	{
+		//console.log("Got token:", token);
+
+		var nextState;
+
+		if(description.shifts[this.getState()])
+		{
+			var state = description.shifts[this.getState()][token.name || token];
+			if(typeof state === "number")
+			{
+				this.push(state, token);
+			}
+			else
+			{
+				return false;
+			}
+
+			return this.applyReductions();
+		}
+
+		return false;
+	};
+
+	this.reduce = function(reduce)
+	{
+		var lhs = description.rules[reduce].lhs.name;
+		var size = description.rules[reduce].rhs.length;
+
+		var node = {
+			type: 'nonTerminal',
+			name: lhs,
+			children: []
+		};
+
+		for(var i=0; i<size; i++)
+		{
+			node.children.unshift({
+				type: 'component',
+				name: description.rules[reduce].rhs[i].name,
+				children: [stack.pop()]
+			});
+			states.pop();
+		}
+
+		var goTo;
+		if(description.gotos[this.getState()] && 
+			(goTo=description.gotos[this.getState()][lhs]))
+		{
+			this.push(goTo, node);
+			return this.applyReductions();
+		}
+		else
+		{
+			return "No GOTO action in state "+reduce+" for symbol '"+lhs+"'";
+		}
+	};
+
+	this.applyReductions = function()
+	{
+		var reduce = description.reduces[this.getState()];
+		if(typeof reduce === "number")
+		{
+			return this.reduce(parseInt(reduce));
+		}
+		else
+		{
+			return true;
 		}
 	};
 };
