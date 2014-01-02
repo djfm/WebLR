@@ -31,10 +31,10 @@ span.postfix.success
 
 div.error
 {
-	background-color: orange;
+	background-color: rgb(255,127,63);
 	padding: 10px;
-	border-radius: 10px;
 	border: 1px solid black;
+	margin-bottom: 10px;
 }
 
 table.expanding
@@ -76,4 +76,19 @@ span.parser-action:not(:first-of-type)
 td.parser-actions.conflicted
 {
 	border: 1px solid red;
+}
+
+.node.terminal circle
+{
+	background-color: red;
+}
+
+textarea#grammar, textarea#test-input, textarea#resolution
+{
+	min-height: 200px;
+}
+
+a.resolution-option
+{
+	margin-left: 5px;
 }
