@@ -245,7 +245,7 @@ function ItemSets()
 	}
 }
 
-function ParserGenerator(rules, resolutions)
+function ParserGenerator(tokenizer, rules, resolutions)
 {
 	var itemSets = new ItemSets();
 	var shifts = {};
@@ -524,15 +524,8 @@ function ParserGenerator(rules, resolutions)
 
 	this.parse = function(str)
 	{
-		console.log("Parsing string: ", str);
-
-		var red = {};
-		for(var s in reduces)
-		{
-			red[s] = parseInt(reduces[s][0]);
-		}
-
 		var parser = new Parser({
+			tokenizer: tokenizer,
 			rules: rules,
 			initialState: initialState,
 			table: table.rows
@@ -568,6 +561,7 @@ function Parser(description)
 
 	this.parse = function(str)
 	{
+		/*
 		for(var i in str)
 		{
 			var ate = this.eat({
@@ -575,6 +569,44 @@ function Parser(description)
 				name: str[i],
 				value: str[i]
 			});
+			if(ate !== true)
+			{
+				return ate;
+			}
+		}*/
+
+		while(str !== '')
+		{
+			var token = null;
+
+			for(var terminal in description.tokenizer)
+			{
+				var exp = new RegExp('^'+description.tokenizer[terminal]);
+				var m = exp.exec(str);
+				if(m)
+				{
+					str = str.substring(m[0].length);
+					token = {
+						type: 'terminal',
+						name: terminal,
+						value: m[0]
+					}
+					break;
+				}
+			}
+
+			if(!token)
+			{
+				token = {
+					type: 'terminal',
+					name: str[0],
+					value: str[0]
+				};
+
+				str = str.substring(1);
+			}
+
+			var ate = this.eat(token);
 			if(ate !== true)
 			{
 				return ate;
@@ -600,6 +632,7 @@ function Parser(description)
 
 	this.eat = function(token)
 	{
+		console.log("Eating token", token);
 		var nextState;
 
 		symbol = token.name || token;

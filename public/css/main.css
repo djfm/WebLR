@@ -83,7 +83,7 @@ td.parser-actions.conflicted
 	background-color: red;
 }
 
-textarea#grammar, textarea#test-input, textarea#resolution
+textarea#grammar, textarea#resolution, textarea#tokenizer
 {
 	min-height: 200px;
 }

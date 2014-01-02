@@ -14,6 +14,10 @@
 	<body ng-app ng-controller='ParserController'>
 		<div class="row">
 			<div class="large-4 columns">
+				<label for='tokenizer'>Tokenizer</label>
+				<textarea id="tokenizer" ng-model='tokenizerString' ng-change='tokenizerChanged()'></textarea>
+			</div>
+			<div class="large-4 columns">
 				<label for='grammar'>Grammar</label>
 				<textarea id="grammar" ng-model='grammar'></textarea>
 			</div>
@@ -21,7 +25,9 @@
 				<label for='resolution'>Conflict resolution</label>
 				<textarea id="resolution" ng-model='resolution' ng-change='resolutionChanged()'></textarea>
 			</div>
-			<div class="large-4 columns">
+		</div>
+		<div class="row">
+			<div class="large-12 columns">
 				<label for='test-input'>Test string</label>
 				<textarea id='test-input' ng-model='test_string' ng-change='saveToLocalStorage(); parse()'></textarea>
 			</div>

@@ -42,7 +42,7 @@ function TreeView(targetSvgId)
 		});
 
 		node.append("text")
-		.text(function(d){return d.name;})
+		.text(function(d){return d.type === 'terminal' ?  d.name + " ("+d.value+")" : d.name;})
 		.attr('transform', 'translate(10,0)');
 	};
 }

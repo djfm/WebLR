@@ -8,6 +8,7 @@ var ParserController = function($scope)
 		localStorage.setItem('rules', angular.toJson($scope.rules));
 		localStorage.setItem('test_string', angular.toJson($scope.test_string));
 		localStorage.setItem('resolutions', angular.toJson($scope.resolutions));
+		localStorage.setItem('tokenizer', angular.toJson($scope.tokenizer));
 	};
 
 	$scope.loadFromLocalStorage = function()
@@ -15,6 +16,7 @@ var ParserController = function($scope)
 		var rules = JSON.parse(localStorage.getItem('rules'));
 		$scope.test_string = JSON.parse(localStorage.getItem('test_string'));
 		$scope.resolutions = JSON.parse(localStorage.getItem('resolutions')) || {};
+		$scope.tokenizer = JSON.parse(localStorage.getItem('tokenizer')) || {};
 		if(rules)
 		{
 			$scope.rules = rules;
@@ -46,6 +48,7 @@ var ParserController = function($scope)
 	$scope.computeParseTable = function()
 	{
 		parserGenerator = new ParserGenerator(
+			JSON.parse(angular.toJson($scope.tokenizer)),
 			JSON.parse(angular.toJson($scope.rules)),
 			JSON.parse(angular.toJson($scope.resolutions))
 		);
@@ -189,11 +192,37 @@ var ParserController = function($scope)
 		$scope.saveToLocalStorage();
 	};
 
-	// Initialization
+	$scope.tokenizerChanged = function()
+	{
+		$scope.tokenizer = {};
+		var lines = $scope.tokenizerString.split(/\n+/);
+		for(var l in lines)
+		{
+			var line = lines[l];
+			var eqpos = line.indexOf("=");
+			var left = line.substring(0, eqpos).trim();
+			var right = line.substring(eqpos+1).trim();
+			$scope.tokenizer[left] = right;
+		}
+		$scope.saveToLocalStorage();
+	};
 
+	$scope.showTokenizer = function()
+	{
+		var lines = [];
+		for(var i in $scope.tokenizer)
+		{
+			lines.push(i+" = "+$scope.tokenizer[i]);
+		}
+		$scope.tokenizerString = lines.join("\n");
+	};
+
+	// Initialization
+	$scope.tokenizer = {};  
 	$scope.resolutions = {};
 	$scope.parseTableError = false;
 	$scope.loadFromLocalStorage();
 	$scope.showResolutions();
+	$scope.showTokenizer();
 	$scope.computeParseTable();
 };
