@@ -45,11 +45,11 @@
 			</div>
 			<div class="large-4 columns">
 				<label for='grammar'>Grammar</label>
-				<textarea id="grammar" ng-model='grammar'></textarea>
+				<textarea id="grammar" ng-model='grammarString'></textarea>
 			</div>
 			<div class="large-4 columns">
 				<label for='resolution'>Conflict resolution</label>
-				<textarea id="resolution" ng-model='resolution' ng-change='resolutionChanged()'></textarea>
+				<textarea id="resolution" ng-model='resolutionString' ng-change='resolutionChanged()'></textarea>
 			</div>
 		</div>
 		<div class="row">

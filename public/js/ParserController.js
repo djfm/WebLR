@@ -7,7 +7,7 @@ var ParserController = function($scope)
 	{
 		localStorage.setItem('rules', angular.toJson($scope.rules));
 		localStorage.setItem('test_string', angular.toJson($scope.test_string));
-		localStorage.setItem('resolutions', angular.toJson($scope.resolutions));
+		localStorage.setItem('resolutions', angular.toJson($scope.resolution));
 		localStorage.setItem('tokenizer', angular.toJson($scope.tokenizer));
 	};
 
@@ -15,7 +15,7 @@ var ParserController = function($scope)
 	{
 		var rules = JSON.parse(localStorage.getItem('rules'));
 		$scope.test_string = JSON.parse(localStorage.getItem('test_string')) || "123456";
-		$scope.resolutions = JSON.parse(localStorage.getItem('resolutions')) || {};
+		$scope.resolution = JSON.parse(localStorage.getItem('resolutions')) || {};
 		$scope.tokenizer = JSON.parse(localStorage.getItem('tokenizer')) || {digit: '\\d'};
 		if(rules)
 		{
@@ -29,8 +29,6 @@ var ParserController = function($scope)
 				{lhs: {name: 'E'}, rhs: [{name: 'digit'}]}
 			];
 		}
-
-		$scope.grammar = $scope.rulesToGrammarString();
 	};
 
 	$scope.rulesChanged = function()
@@ -43,7 +41,7 @@ var ParserController = function($scope)
 		parserGenerator = new ParserGenerator(
 			JSON.parse(angular.toJson($scope.tokenizer)),
 			JSON.parse(angular.toJson($scope.rules)),
-			JSON.parse(angular.toJson($scope.resolutions))
+			JSON.parse(angular.toJson($scope.resolution))
 		);
 		var table = parserGenerator.computeParseTable();
 
@@ -106,15 +104,15 @@ var ParserController = function($scope)
 		}
 	}
 
-	$scope.rulesToGrammarString = function()
+	$scope.showGrammar = function()
 	{
-		return $scope.rules.map(ruleToString).join("\n");
+		$scope.grammarString = $scope.rules.map(ruleToString).join("\n");
 	};
 
 	$scope.grammarChanged = function()
 	{
 		$scope.rules = [];
-		var lines = $scope.grammar.split(/\n+/);
+		var lines = $scope.grammarString.split(/\n+/);
 		for(var l in lines)
 		{
 			var eq = lines[l].indexOf("=");
@@ -139,20 +137,20 @@ var ParserController = function($scope)
 
 	$scope.solveConflict = function(option)
 	{
-		$scope.resolutions[resolutionToString(option)] = option;
+		$scope.resolution[resolutionToString(option)] = option;
 		$scope.saveToLocalStorage();
-		$scope.showResolutions();
+		$scope.showResolution();
 		$scope.computeParseTable();
 	};
 
-	$scope.showResolutions = function()
+	$scope.showResolution = function()
 	{
-		$scope.resolution = Object.keys($scope.resolutions).join("\n");
+		$scope.resolutionString = Object.keys($scope.resolution).join("\n");
 	};
 
 	$scope.resolutionChanged = function()
 	{
-		$scope.resolutions = {};
+		$scope.resolution = {};
 		var lines = $scope.resolution.split(/\n+/);
 		for(var l in lines)
 		{
@@ -176,7 +174,7 @@ var ParserController = function($scope)
 				}
 				desc.decision = decision;
 
-				$scope.resolutions[resolutionToString(desc)] = desc;
+				$scope.resolution[resolutionToString(desc)] = desc;
 			}
 		}
 
@@ -225,10 +223,11 @@ var ParserController = function($scope)
 	$scope.show_explanations = localStorage.getItem('show_explanations') || true;
 	$scope.max_table_columns = 10;
 	$scope.tokenizer = {};  
-	$scope.resolutions = {};
+	$scope.resolution = {};
 	$scope.parseTableError = false;
 	$scope.loadFromLocalStorage();
-	$scope.showResolutions();
+	$scope.showResolution();
 	$scope.showTokenizer();
+	$scope.showGrammar();
 	$scope.computeParseTable();
 };
