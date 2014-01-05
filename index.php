@@ -48,23 +48,28 @@
 		<div ng-show='table' class="row">
 			<div class="large-6 columns">
 				<label for='parse-table'>Parse Table</label>
-				<table class="expanding" id='parse-table'>
-					<tr>
-						<th></th>
-						<th ng-repeat='h in table.headers'>
-							{{h}}
-						</th>
-					</tr>
-					<tr ng-repeat='(r, row) in table.rows'>
-						<th>{{r}}</th>
-						<td ng-repeat="h in table.headers" class="parser-actions{{row[h].conflicted ? ' conflicted' : ''}}">
-							<span class="parser-action shift" ng-if="row[h].shift">s{{row[h].shift}}</span>
-							<span class="parser-action reduce" ng-repeat="red in row[h].reduces">r{{red}}</span>
-							<span class="parser-action goto" ng-if="row[h].to">g{{row[h].to}}</span>
-							<span class="parser-action accept" ng-if="row[h].accept">acc</span>
-						</td>
-					</tr>
-				</table>
+				<div ng-if="table.headers.length < max_table_columns">
+					<table class="expanding" id='parse-table'>
+						<tr>
+							<th></th>
+							<th ng-repeat='h in table.headers'>
+								{{h}}
+							</th>
+						</tr>
+						<tr ng-repeat='(r, row) in table.rows'>
+							<th>{{r}}</th>
+							<td ng-repeat="h in table.headers" class="parser-actions{{row[h].conflicted ? ' conflicted' : ''}}">
+								<span class="parser-action shift" ng-if="row[h].shift">s{{row[h].shift}}</span>
+								<span class="parser-action reduce" ng-repeat="red in row[h].reduces">r{{red}}</span>
+								<span class="parser-action goto" ng-if="row[h].to">g{{row[h].to}}</span>
+								<span class="parser-action accept" ng-if="row[h].accept">acc</span>
+							</td>
+						</tr>
+					</table>
+				</div>
+				<div ng-if="table.headers.length >= max_table_columns">
+					Parse table too big to be displayed properly.
+				</div>
 			</div>
 			<div class="large-6 columns">
 				<div ng-show="!conflicts"> 
@@ -75,7 +80,7 @@
 							</div>
 						</div>
 					</div>
-					<div class="row">
+					<div ng-show="parseError === false" class="row">
 						<div class="large-12 columns">
 							<svg id='parseTree'></svg>
 						</div>

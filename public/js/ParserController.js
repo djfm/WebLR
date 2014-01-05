@@ -1,7 +1,7 @@
 var ParserController = function($scope)
 {
 	var parserGenerator;
-	var tree;
+	var tree = new TreeView('parseTree');
 
 	$scope.saveToLocalStorage = function()
 	{
@@ -24,19 +24,7 @@ var ParserController = function($scope)
 		}
 		else
 		{
-			$scope.rules = [
-				{
-					lhs: {name: 'Start'},
-					rhs: [
-						{
-							name: 'item'
-						},
-						{
-							name: 'item 2'
-						}
-					]
-				}
-			];
+			$scope.rules = [];
 		}
 	};
 
@@ -65,7 +53,7 @@ var ParserController = function($scope)
 			if(table.conflicts.length === 0)
 			{
 				$scope.parseTableError = false;
-				$scope.table = table;
+				
 				$scope.conflicts = false;
 				if($scope.test_string != '')
 				{
@@ -74,16 +62,18 @@ var ParserController = function($scope)
 			}
 			else
 			{
-				$scope.table = table;
 				$scope.conflicts = table.conflicts;
 				$scope.parseTableError = "Your grammar has conflicts.";
 			}
+
+			$scope.table = table;
 		}
 	};
 
 	$scope.parse = function()
 	{
-		if(parserGenerator && parserGenerator.isGrammarOk())
+		console.log($scope.test_string);
+		if(parserGenerator && parserGenerator.isGrammarOk() && $scope.test_string)
 		{
 			var parsed = parserGenerator.parse($scope.test_string);
 			if (typeof parsed === 'string')
@@ -96,10 +86,6 @@ var ParserController = function($scope)
 			}
 			else
 			{
-				if(!tree)
-				{
-					tree = new TreeView('parseTree');
-				}
 				$scope.parseError = false;
 				var adapted = parsed;/*
 				var adapted = Tree.removeMiddleNodes(parsed, function(node){
@@ -204,6 +190,7 @@ var ParserController = function($scope)
 			var right = line.substring(eqpos+1).trim();
 			$scope.tokenizer[left] = right;
 		}
+		delete $scope.tokenizer[""];
 		$scope.saveToLocalStorage();
 	};
 
@@ -218,6 +205,7 @@ var ParserController = function($scope)
 	};
 
 	// Initialization
+	$scope.max_table_columns = 10;
 	$scope.tokenizer = {};  
 	$scope.resolutions = {};
 	$scope.parseTableError = false;
