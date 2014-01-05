@@ -206,7 +206,6 @@ function ItemSet()
 							syms.push(item.nextSymbol());
 						}
 						syms.push(item.getLookAhead());
-						console.log(item.toString());
 						var lookAheads = first(syms);
 						
 						for(var la in lookAheads)
@@ -555,13 +554,6 @@ function ParserGenerator(tokenizer, rules, resolutions)
 					if(item.getLhs().name !== 'Start')
 					{
 						this.writeTable(state, item.getLookAhead(), 'reduce', item.getRule().id);
-						/*
-						if(!reduces[state])
-						{
-							reduces[state] = [];
-						}
-						reduces[state].push(item.getRule().id);*/
-						console.log("Reduce with", item.getRule().id, "in state", state, "on lookAhead", item.getLookAhead());
 					}
 					else if(item.getLookAhead() === '$')
 					{
@@ -639,7 +631,7 @@ function ParserGenerator(tokenizer, rules, resolutions)
 
 function Parser(description)
 {
-	console.log("Parser description:", description);
+	//console.log("Parser description:", description);
 
 	var states = [description.initialState];
 	var stack = [];
@@ -658,7 +650,7 @@ function Parser(description)
 	{
 		states.push(state);
 		stack.push(token);
-		console.log("Shifted to", state, "on", token.name || token);
+		//console.log("Shifted to", state, "on", token.name || token);
 	};
 
 	this.parse = function(str)
@@ -719,7 +711,7 @@ function Parser(description)
 
 	this.eat = function(token)
 	{
-		console.log("Eating token", token);
+		//console.log("Eating token", token);
 		var nextState;
 
 		symbol = token.name || token;
@@ -768,7 +760,7 @@ function Parser(description)
 			states.pop();
 		}
 
-		console.log('Reduced to', this.getState(), "using rule", reduce);
+		//console.log('Reduced to', this.getState(), "using rule", reduce);
 
 		var cell = description.table[this.getState()];
 		if( cell && cell[lhs] && cell[lhs].to && (typeof cell[lhs].to === "number"))

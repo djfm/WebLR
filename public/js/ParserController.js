@@ -1,46 +1,73 @@
-var ParserController = function($scope)
+angular.module('webLR', [], function($locationProvider) {
+  $locationProvider.html5Mode(true);
+});
+
+var ParserController = function($scope, $location)
 {
 	var parserGenerator;
 	var tree = new TreeView('parseTree');
 
-	$scope.saveToLocalStorage = function()
-	{
-		localStorage.setItem('rules', angular.toJson($scope.rules));
-		localStorage.setItem('test_string', angular.toJson($scope.test_string));
-		localStorage.setItem('resolutions', angular.toJson($scope.resolution));
-		localStorage.setItem('tokenizer', angular.toJson($scope.tokenizer));
+	var persistantScopeVariables = {
+		tokenizer: {digit: '\\d'},
+		grammar: [
+			{lhs: {name: 'Start'}, rhs: [{name: 'E'}]},
+			{lhs: {name: 'E'}, rhs: [{name: 'digit'}, {name: 'E'}]},
+			{lhs: {name: 'E'}, rhs: [{name: 'digit'}]}
+		],
+		resolution: {},
+		test_string: '123456' 
 	};
 
-	$scope.loadFromLocalStorage = function()
+	$scope.saveData = function()
 	{
-		var rules = JSON.parse(localStorage.getItem('rules'));
-		$scope.test_string = JSON.parse(localStorage.getItem('test_string')) || "123456";
-		$scope.resolution = JSON.parse(localStorage.getItem('resolutions')) || {};
-		$scope.tokenizer = JSON.parse(localStorage.getItem('tokenizer')) || {digit: '\\d'};
-		if(rules)
+		var urlParameters = [];
+		for(var v in persistantScopeVariables)
 		{
-			$scope.rules = rules;
+			var json = angular.toJson($scope[v]);
+			if(!$scope.loadedFromLocation)
+			{
+				localStorage.setItem(v, json);
+			}
+			urlParameters.push(v+"="+encodeURIComponent(json));
 		}
-		else
+		$scope.link = "?"+urlParameters.join("&");
+	};
+
+	$scope.loadData = function()
+	{
+		$scope.loadedFromLocation = false;
+		for(var v in persistantScopeVariables)
 		{
-			$scope.rules = [
-				{lhs: {name: 'Start'}, rhs: [{name: 'E'}]},
-				{lhs: {name: 'E'}, rhs: [{name: 'digit'}, {name: 'E'}]},
-				{lhs: {name: 'E'}, rhs: [{name: 'digit'}]}
-			];
+			var value;
+			var fromLocation;
+			if(fromLocation = $location.search()[v])
+			{
+				value = JSON.parse(fromLocation);
+				$scope.loadedFromLocation = true;
+			}
+			else if((value = localStorage.getItem(v)) !== null)
+			{
+				value = JSON.parse(value);
+			}
+			else
+			{
+				value = persistantScopeVariables[v];
+			}
+
+			$scope[v] = value;
 		}
 	};
 
 	$scope.rulesChanged = function()
 	{
-		$scope.saveToLocalStorage();
+		$scope.saveData();
 	};
 
 	$scope.computeParseTable = function()
 	{
 		parserGenerator = new ParserGenerator(
 			JSON.parse(angular.toJson($scope.tokenizer)),
-			JSON.parse(angular.toJson($scope.rules)),
+			JSON.parse(angular.toJson($scope.grammar)),
 			JSON.parse(angular.toJson($scope.resolution))
 		);
 		var table = parserGenerator.computeParseTable();
@@ -75,7 +102,6 @@ var ParserController = function($scope)
 
 	$scope.parse = function()
 	{
-		console.log($scope.test_string);
 		if(parserGenerator && parserGenerator.isGrammarOk() && $scope.test_string)
 		{
 			var parsed = parserGenerator.parse($scope.test_string);
@@ -106,12 +132,12 @@ var ParserController = function($scope)
 
 	$scope.showGrammar = function()
 	{
-		$scope.grammarString = $scope.rules.map(ruleToString).join("\n");
+		$scope.grammarString = $scope.grammar.map(ruleToString).join("\n");
 	};
 
 	$scope.grammarChanged = function()
 	{
-		$scope.rules = [];
+		$scope.grammar = [];
 		var lines = $scope.grammarString.split(/\n+/);
 		for(var l in lines)
 		{
@@ -128,17 +154,17 @@ var ParserController = function($scope)
 					};
 				})
 			};
-			$scope.rules.push(rule);
+			$scope.grammar.push(rule);
 		}
 
-		$scope.saveToLocalStorage();
+		$scope.saveData();
 		$scope.computeParseTable();
 	};
 
 	$scope.solveConflict = function(option)
 	{
 		$scope.resolution[resolutionToString(option)] = option;
-		$scope.saveToLocalStorage();
+		$scope.saveData();
 		$scope.showResolution();
 		$scope.computeParseTable();
 	};
@@ -178,7 +204,7 @@ var ParserController = function($scope)
 			}
 		}
 
-		$scope.saveToLocalStorage();
+		$scope.saveData();
 	};
 
 	$scope.tokenizerChanged = function()
@@ -194,7 +220,7 @@ var ParserController = function($scope)
 			$scope.tokenizer[left] = right;
 		}
 		delete $scope.tokenizer[""];
-		$scope.saveToLocalStorage();
+		$scope.saveData();
 	};
 
 	$scope.showTokenizer = function()
@@ -210,7 +236,7 @@ var ParserController = function($scope)
 	$scope.clean = function()
 	{
 		localStorage.clear();
-		location.reload();
+		location.search = "";
 	};
 
 	$scope.hideExplanations = function()
@@ -220,14 +246,15 @@ var ParserController = function($scope)
 	};
 
 	// Initialization
+	$scope.link = '';
 	$scope.show_explanations = localStorage.getItem('show_explanations') || true;
 	$scope.max_table_columns = 10;
 	$scope.tokenizer = {};  
 	$scope.resolution = {};
 	$scope.parseTableError = false;
-	$scope.loadFromLocalStorage();
-	$scope.showResolution();
+	$scope.loadData();
 	$scope.showTokenizer();
 	$scope.showGrammar();
+	$scope.showResolution();
 	$scope.computeParseTable();
 };
