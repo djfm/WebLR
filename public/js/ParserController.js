@@ -14,18 +14,23 @@ var ParserController = function($scope)
 	$scope.loadFromLocalStorage = function()
 	{
 		var rules = JSON.parse(localStorage.getItem('rules'));
-		$scope.test_string = JSON.parse(localStorage.getItem('test_string'));
+		$scope.test_string = JSON.parse(localStorage.getItem('test_string')) || "123456";
 		$scope.resolutions = JSON.parse(localStorage.getItem('resolutions')) || {};
-		$scope.tokenizer = JSON.parse(localStorage.getItem('tokenizer')) || {};
+		$scope.tokenizer = JSON.parse(localStorage.getItem('tokenizer')) || {digit: '\\d'};
 		if(rules)
 		{
 			$scope.rules = rules;
-			$scope.grammar = $scope.rulesToGrammarString();
 		}
 		else
 		{
-			$scope.rules = [];
+			$scope.rules = [
+				{lhs: {name: 'Start'}, rhs: [{name: 'E'}]},
+				{lhs: {name: 'E'}, rhs: [{name: 'digit'}, {name: 'E'}]},
+				{lhs: {name: 'E'}, rhs: [{name: 'digit'}]}
+			];
 		}
+
+		$scope.grammar = $scope.rulesToGrammarString();
 	};
 
 	$scope.rulesChanged = function()
@@ -204,7 +209,20 @@ var ParserController = function($scope)
 		$scope.tokenizerString = lines.join("\n");
 	};
 
+	$scope.clean = function()
+	{
+		localStorage.clear();
+		location.reload();
+	};
+
+	$scope.hideExplanations = function()
+	{
+		$scope.show_explanations = false;
+		localStorage.setItem('show_explanations', $scope.show_explanations);
+	};
+
 	// Initialization
+	$scope.show_explanations = localStorage.getItem('show_explanations') || true;
 	$scope.max_table_columns = 10;
 	$scope.tokenizer = {};  
 	$scope.resolutions = {};

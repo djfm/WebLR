@@ -1,6 +1,10 @@
-body
+h1
 {
-	margin-top: 15px;
+	display: block;
+	background-color: #ccc;
+	margin-top: 0;
+	margin-bottom: 15px;
+	padding-left: 30px; 
 }
 
 div.columns span.label

@@ -12,6 +12,32 @@
 	</head>
 
 	<body ng-app ng-controller='ParserController'>
+		<h1>WebLR</h1>
+		<div class="row">
+			<div class="large-12 columns">
+				<div ng-show="show_explanations" class="panel">
+					<h2>Welcome!</h2>
+					<p>In theory, this here is a LR(1) parser generator! The source code can be found on <a target="_blank" href="https://github.com/djfm/WebLR">GitHub</a>.</p>
+					<p>The website itself uses cool web technologies so if you have problems browsing it you should consider using a decent browser (I mean, Chrome).</p>
+					<p>
+						Some basic explanations now:
+						<ul>
+							<li>The left hand side of a rule is seperated from the right hand side by an "=" (equal) sign</li>
+							<li>Every symbol starting with a capital letter is considered a non terminal</li>
+							<li>You can define special terminals using the tokenizer. The tokenizer is a really dumb one, it treats expressions as regexes and when parsing a string it returns the text corresponding to the first matching regex. If no regex matches at some point, then the next single char in the input string is used as a terminal.</li>
+							<li>The program will not check that you don't do dumb stuff:
+								<ul>
+									<li><strong>Do not use '$' as a terminal in your grammar, it has a special meaning. If you need to use $, define it in the tokenizer</strong></li>
+									<li><strong>Do not name your terminals with capital letters in the tokenizer, it will mysteriously fail</strong></li>
+								</ul>
+							</li>
+						</ul>
+					</p>
+					<button ng-click="hideExplanations()">Ok, got it, hide this ugly panel.</button>
+				</div>
+				<p>All that you do is stored in localStorage, but if you want to start from a clean slate <a ng-click="clean()">click here</a>.</p>
+			</div>
+		</div>
 		<div class="row">
 			<div class="large-4 columns">
 				<label for='tokenizer'>Tokenizer</label>
