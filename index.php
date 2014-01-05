@@ -36,7 +36,7 @@
 					<button ng-click="hideExplanations()">Ok, got it, hide this ugly panel.</button>
 				</div>
 				<p ng-show="!loadedFromLocation">All that you do is stored in localStorage, but if you want to start from a clean slate <a ng-click="clean()">click here</a>.</p>
-				<p ng-show="loadedFromLocation">The parser you are viewing now was loaded from the URL, so I have disabled storing stuff in your local storage just in case you had something of value in it. Ckick <a ng-click='loadedFromLocation=false'>here</a> so that the next changes are saved to your local storage.</p>
+				<p ng-show="loadedFromLocation">The parser you are viewing now was loaded from the URL, so I have disabled storing stuff in your local storage just in case you had something of value in it. Click <a ng-click='loadedFromLocation=false'>here</a> so that the next changes are saved to your local storage.</p>
 				<p ng-show="link">You can share your work with <a target = "_blank" ng-href='{{link}}'>this link</a> (well, until the URL gets too complicated).</p>
 			</div>
 		</div>
