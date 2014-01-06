@@ -1,6 +1,39 @@
-angular.module('webLR', [], function($locationProvider) {
+var module = angular.module('webLR', [], function($locationProvider) {
   $locationProvider.html5Mode(true);
 });
+
+(function()
+{
+	var canvas = document.createElement('canvas');
+	var context = canvas.getContext('2d');
+	canvas.width = 13;
+
+	module.directive('vtext', function(){
+	return{
+		template: '<img title={{text}} alt={{text}} src="{{text_image}}">',
+		link: function(scope, element, attrs)
+		{
+			context.clearRect(0, 0, canvas.width, canvas.height);
+			context.font = '10px sans-serif';
+			
+			var text = attrs.vtext;
+			canvas.height = context.measureText(text).width;
+			
+			context.save();
+			context.translate(canvas.width/2, canvas.height/2);
+			context.rotate(-Math.PI/2);
+			context.fillText(text, -canvas.height/2, 1);
+			context.restore();
+
+			scope.text_image = canvas.toDataURL();
+			scope.text = text;
+		}
+	}
+	});
+})();
+
+
+
 
 var ParserController = function($scope, $location)
 {

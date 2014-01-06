@@ -80,8 +80,8 @@
 					<table class="expanding" id='parse-table'>
 						<tr>
 							<th></th>
-							<th ng-repeat='h in table.headers'>
-								{{h}}
+							<th valign="bottom" ng-repeat='h in table.headers'>
+								<span vtext="{{h}}"></span>
 							</th>
 						</tr>
 						<tr ng-repeat='(r, row) in table.rows'>
